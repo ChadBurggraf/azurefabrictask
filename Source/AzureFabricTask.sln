@@ -6,6 +6,8 @@ MinimumVisualStudioVersion = 10.0.40219.1
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{E9839491-B8B1-4623-BE9B-D1D53CB246CC}"
 	ProjectSection(SolutionItems) = preProject
 		AzureFabricTask.targets = AzureFabricTask.targets
+		..\LICENSE.txt = ..\LICENSE.txt
+		..\README.md = ..\README.md
 		Settings.StyleCop = Settings.StyleCop
 		SolutionInfo.cs = SolutionInfo.cs
 	EndProjectSection
