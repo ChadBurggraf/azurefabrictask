@@ -21,8 +21,8 @@
 
         public static bool IsInstallPathValid(string path)
         {
-            string dsinitPath, csrunPath;
-            return Fabric.IsInstallPathValid(path, out dsinitPath, out csrunPath);
+            string csrunPath;
+            return Fabric.IsInstallPathValid(path, out csrunPath);
         }
 
         public static bool Start(string path = null)
@@ -31,19 +31,16 @@
 
             if (!success)
             { 
-                string dsinitPath, csrunPath;
+                string csrunPath;
 
                 if (string.IsNullOrWhiteSpace(path))
                 {
                     path = Fabric.DefaultInstallPath;
                 }
 
-                if (Fabric.IsInstallPathValid(path, out dsinitPath, out csrunPath))
-                {
-                    return Fabric.StartProcess(dsinitPath, "/silent /forceCreate")
-                        && Fabric.StartProcess(csrunPath, "/devfabric:start")
-                        && Fabric.StartProcess(csrunPath, "/devstore:start");
-                }
+                success = Fabric.IsInstallPathValid(path, out csrunPath)
+                    && Fabric.StartProcess(csrunPath, "/devfabric:start")
+                    && Fabric.StartProcess(csrunPath, "/devstore:start");
             }
 
             return success;
@@ -51,24 +48,23 @@
 
         public static bool Stop(string path = null)
         {
-            string dsinitPath, csrunPath;
+            string csrunPath;
 
             if (string.IsNullOrWhiteSpace(path))
             {
                 path = Fabric.DefaultInstallPath;
             }
 
-            return Fabric.IsInstallPathValid(path, out dsinitPath, out csrunPath)
+            return Fabric.IsInstallPathValid(path, out csrunPath)
                 && Fabric.StartProcess(csrunPath, "/devfabric:start")
                 && Fabric.StartProcess(csrunPath, "/devstore:start");
         }
 
-        private static bool IsInstallPathValid(string path, out string dsinitPath, out string csrunPath)
+        private static bool IsInstallPathValid(string path, out string csrunPath)
         {
             path = !string.IsNullOrWhiteSpace(path) ? Path.GetFullPath(path) : Environment.CurrentDirectory;
-            dsinitPath = Path.Combine(path, "Emulator", "devstore", "dsinit.exe");
             csrunPath = Path.Combine(path, "Emulator", "csrun.exe");
-            return File.Exists(dsinitPath) && File.Exists(csrunPath);
+            return File.Exists(csrunPath);
         }
 
         private static bool StartProcess(string path, string arguments)
