@@ -2,8 +2,8 @@
 #### An Azure dev fabric MSBuild task
 
 This is an Azure dev fabric task for MSBuild, which can be used to start the
-Windows Azure emulator if during build. The emulator will only be started
-if it is not already.
+Windows Azure emulator during build. The emulator will only be started if it 
+is not already.
 
 ## Usage
 
@@ -31,4 +31,4 @@ The task requires MSBuild v4.0 or later.
 
 Licensed under the [MIT](http://www.opensource.org/licenses/mit-license.html) license. See LICENSE.txt.
 
-Original copyright (c) 2010 Brad Wilson. Modifications and updates copyright (c) 2010 Chad Burggraf.
+Copyright (c) 2013 Chad Burggraf.
