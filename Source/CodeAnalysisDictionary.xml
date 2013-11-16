@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<Dictionary>
+  <Words>
+    <DiscreteExceptions>
+      <Term>SdkDir</Term>
+    </DiscreteExceptions>
+    <Recognized>
+      <Word>csrun</Word>
+      <Word>Dir</Word>
+      <Word>dsinit</Word>
+      <Word>SdkDir</Word>
+    </Recognized>
+  </Words>
+</Dictionary>

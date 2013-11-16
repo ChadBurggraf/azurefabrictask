@@ -1,0 +1,35 @@
+<Project ToolsVersion="4.0" DefaultTargets="Publish" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <PropertyGroup>
+    <Configuration Condition="'$(Configuration)' == ''">Release</Configuration>
+    <RootDir Condition="'$(RootDir)' == ''">$(MSBuildThisFileDirectory)..\</RootDir>
+    <StyleCopTreatErrorsAsWarnings Condition="'$(StyleCopTreatErrorsAsWarnings)' == ''">false</StyleCopTreatErrorsAsWarnings>
+  </PropertyGroup>
+
+  <PropertyGroup>
+    <LibDir>$(RootDir)Lib\</LibDir>
+    <PublishDir>$(RootDir)Publish\</PublishDir>
+    <SourceDir>$(RootDir)Source\</SourceDir>
+    <ToolsDir>$(RootDir)Tools\</ToolsDir>
+  </PropertyGroup>
+
+  <PropertyGroup>
+    <AssemblyOriginatorKeyFile>$(SourceDir)AzureFabricTask.snk</AssemblyOriginatorKeyFile>
+    <EnableSigning Condition="'$(EnableSigning)' == ''">true</EnableSigning>
+    <SignAssembly>false</SignAssembly>
+    <StyleCopOverrideSettingsFile>$(SourceDir)Settings.StyleCop</StyleCopOverrideSettingsFile>
+  </PropertyGroup>
+
+  <PropertyGroup Condition="Exists('$(AssemblyOriginatorKeyFile)') And '$(EnableSigning)' == 'true'">
+    <SignAssembly>true</SignAssembly>
+  </PropertyGroup>
+
+  <Import Project="$(ToolsDir)StyleCop\StyleCop.Targets" />
+
+  <Target Name="Publish">
+    <RemoveDir Directories="$(PublishDir)" />
+    <MakeDir Directories="$(PublishDir)" />
+    <MSBuild Projects="$(SourceDir)AzureFabricTask\AzureFabricTask.csproj" Properties="Configuration=$(Configuration);SignAssembly=$(SignAssembly);AssemblyOriginatorKeyFile=$(AssemblyOriginatorKeyFile)" />
+    <Copy SourceFiles="$(SourceDir)AzureFabricTask\bin\$(Configuration)\AzureFabricTask.dll" DestinationFolder="$(PublishDir)" />
+    <Copy SourceFiles="$(RootDir)README.md" DestinationFolder="$(PublishDir)" />
+  </Target>
+</Project>
