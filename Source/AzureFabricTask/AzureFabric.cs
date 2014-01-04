@@ -32,12 +32,12 @@
 
                             if (!string.IsNullOrWhiteSpace(result.StandardOut))
                             {
-                                this.Log.LogError(result.StandardOut);
+                                this.Log.LogCommandLine(result.StandardOut);
                             }
 
                             if (!string.IsNullOrWhiteSpace(result.StandardError))
                             {
-                                this.Log.LogError(result.StandardError);
+                                this.Log.LogCommandLine(result.StandardError);
                             }
                         }
                         else

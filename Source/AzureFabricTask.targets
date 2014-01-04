@@ -30,6 +30,7 @@
     <MakeDir Directories="$(PublishDir)" />
     <MSBuild Projects="$(SourceDir)AzureFabricTask\AzureFabricTask.csproj" Properties="Configuration=$(Configuration);SignAssembly=$(SignAssembly);AssemblyOriginatorKeyFile=$(AssemblyOriginatorKeyFile)" />
     <Copy SourceFiles="$(SourceDir)AzureFabricTask\bin\$(Configuration)\AzureFabricTask.dll" DestinationFolder="$(PublishDir)" />
+    <Copy SourceFiles="$(SourceDir)AzureFabricTask\AzureFabric.proj" DestinationFolder="$(PublishDir)" />
     <Copy SourceFiles="$(RootDir)README.md" DestinationFolder="$(PublishDir)" />
   </Target>
 </Project>
