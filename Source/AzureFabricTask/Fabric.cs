@@ -25,6 +25,28 @@
             return Fabric.IsInstallPathValid(path, out csrunPath);
         }
 
+        public static ProcessResult Initialize(string path = null)
+        {
+            if (string.IsNullOrWhiteSpace(path))
+            {
+                path = Fabric.DefaultInstallPath;
+            }
+
+            string csrunPath;
+
+            if (Fabric.IsInstallPathValid(path, out csrunPath))
+            {
+                path = Path.Combine(Path.GetDirectoryName(csrunPath), "devstore", "DSInit.exe");
+
+                using (ProcessWrapper pw = new ProcessWrapper(path, "/silent /forceCreate"))
+                {
+                    return pw.Execute();
+                }
+            }
+
+            return new ProcessResult(-1, path);
+        }
+
         public static bool Start(string path = null)
         {
             bool success = Fabric.IsLoaded;
@@ -69,26 +91,10 @@
 
         private static bool StartProcess(string path, string arguments)
         {
-            Process process = null;
-
-            try
+            using (ProcessWrapper p = new ProcessWrapper(path, arguments))
             {
-                process = new Process();
-                process.StartInfo.CreateNoWindow = true;
-                process.StartInfo.WindowStyle = ProcessWindowStyle.Hidden;
-                process.StartInfo.FileName = path;
-                process.StartInfo.Arguments = arguments;
-                process.Start();
-                process.WaitForExit();
-                return process.ExitCode == 0;
-            }
-            finally
-            {
-                if (process != null)
-                {
-                    process.Dispose();
-                    process = null;
-                }
+                ProcessResult result = p.Execute();
+                return result.ExitCode == 0;
             }
         }
     }

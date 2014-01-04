@@ -49,6 +49,8 @@
     </Compile>
     <Compile Include="AzureFabric.cs" />
     <Compile Include="Fabric.cs" />
+    <Compile Include="ProcessResult.cs" />
+    <Compile Include="ProcessWrapper.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>

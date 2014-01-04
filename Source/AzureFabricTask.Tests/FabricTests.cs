@@ -13,6 +13,13 @@
         }
 
         [Fact]
+        public void FabricInitialize()
+        {
+            ProcessResult result = Fabric.Initialize();
+            Assert.NotNull(result);
+        }
+
+        [Fact]
         public void FabricStart()
         {
             Assert.True(Fabric.Start());
