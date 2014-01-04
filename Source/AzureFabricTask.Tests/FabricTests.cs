@@ -22,20 +22,31 @@
         [Fact]
         public void FabricStart()
         {
-            Assert.True(Fabric.Start());
+            ProcessResult result = Fabric.Start();
+            Assert.NotNull(result);
+            Assert.Equal(0, result.ExitCode);
         }
 
         [Fact]
         public async Task FabricStartParallel()
         {
-            bool[] success = await Task.WhenAll(Enumerable.Range(0, 10).Select(i => Task.Run(() => Fabric.Start())));
-            Assert.True(success.All(s => s));
+            ProcessResult[] results = await Task.WhenAll(Enumerable.Range(0, 10).Select(i => Task.Run(() => Fabric.Start())));
+
+            foreach (ProcessResult result in results)
+            {
+                Assert.Equal(0, result.ExitCode);
+            }
         }
 
         [Fact]
         public void FabricStop()
         {
-            Assert.True(Fabric.Stop());
+            Fabric.Start();
+            ProcessResult result = Fabric.Stop();
+            Assert.NotNull(result);
+            Assert.Equal(0, result.ExitCode);
+            Assert.False(Fabric.IsComputeEmulatorStarted);
+            Assert.False(Fabric.IsStorageEmulatorStarted);
         }
     }
 }

@@ -13,7 +13,7 @@
 
         public override bool Execute()
         {
-            bool success = Fabric.IsLoaded;
+            bool success = Fabric.IsComputeEmulatorStarted && Fabric.IsStorageEmulatorStarted;
 
             if (!success)
             {
@@ -27,7 +27,18 @@
                     {
                         if (Fabric.IsInstallPathValid(dir))
                         {
-                            success = Fabric.Start(dir);
+                            ProcessResult result = Fabric.Start(dir);
+                            success = result.ExitCode <= 0;
+
+                            if (!string.IsNullOrWhiteSpace(result.StandardOut))
+                            {
+                                this.Log.LogError(result.StandardOut);
+                            }
+
+                            if (!string.IsNullOrWhiteSpace(result.StandardError))
+                            {
+                                this.Log.LogError(result.StandardError);
+                            }
                         }
                         else
                         {

@@ -33,7 +33,7 @@
             this.standardOut = string.Empty;
         }
 
-        public ProcessResult Execute()
+        public ProcessResult Execute(int timeout = 0)
         {
             if (this.disposed)
             {
@@ -43,7 +43,13 @@
             this.process.Start();
             this.process.BeginErrorReadLine();
             this.process.BeginOutputReadLine();
-            this.process.WaitForExit();
+            bool exited = this.process.WaitForExit(timeout > 0 ? timeout : int.MaxValue);
+
+            if (!exited)
+            {
+                this.process.Kill();
+            }
+
             return new ProcessResult(this.process.ExitCode, this.process.StartInfo.FileName, this.standardError, this.standardOut);
         }
 

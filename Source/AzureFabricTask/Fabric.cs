@@ -9,14 +9,21 @@
     
     public static class Fabric
     {
+        private static readonly object InitializeLock = new object();
+
         public static string DefaultInstallPath
         {
             get { return (string)Registry.GetValue(@"HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows Azure Emulator", "InstallPath", string.Empty); }
         }
 
-        public static bool IsLoaded
+        public static bool IsComputeEmulatorStarted
         {
             get { return Process.GetProcesses().Where(p => p.ProcessName.ToUpperInvariant().Contains("DFSERVICE")).Any(); }
+        }
+
+        public static bool IsStorageEmulatorStarted
+        {
+            get { return Process.GetProcesses().Where(p => p.ProcessName.ToUpperInvariant().Contains("DSSERVICELDB")).Any(); }
         }
 
         public static bool IsInstallPathValid(string path)
@@ -32,54 +39,95 @@
                 path = Fabric.DefaultInstallPath;
             }
 
-            string csrunPath;
-
-            if (Fabric.IsInstallPathValid(path, out csrunPath))
+            if (!Fabric.IsComputeEmulatorStarted && !Fabric.IsStorageEmulatorStarted)
             {
-                path = Path.Combine(Path.GetDirectoryName(csrunPath), "devstore", "DSInit.exe");
+                string csrunPath;
 
-                using (ProcessWrapper pw = new ProcessWrapper(path, "/silent /forceCreate"))
+                if (Fabric.IsInstallPathValid(path, out csrunPath))
                 {
-                    return pw.Execute();
+                    path = Path.Combine(Path.GetDirectoryName(csrunPath), "devstore", "DSInit.exe");
+
+                    lock (Fabric.InitializeLock)
+                    {
+                        if (!Fabric.IsComputeEmulatorStarted && !Fabric.IsStorageEmulatorStarted)
+                        {
+                            using (ProcessWrapper pw = new ProcessWrapper(path, "/silent /forceCreate"))
+                            {
+                                return pw.Execute(20000);
+                            }
+                        }
+                    }
                 }
             }
 
             return new ProcessResult(-1, path);
         }
 
-        public static bool Start(string path = null)
+        public static ProcessResult Start(string path = null)
         {
-            bool success = Fabric.IsLoaded;
+            ProcessResult result = Fabric.Initialize(path);
 
-            if (!success)
-            { 
-                string csrunPath;
-
+            if (result.ExitCode <= 0)
+            {
                 if (string.IsNullOrWhiteSpace(path))
                 {
                     path = Fabric.DefaultInstallPath;
                 }
 
-                success = Fabric.IsInstallPathValid(path, out csrunPath)
-                    && Fabric.StartProcess(csrunPath, "/devfabric:start")
-                    && Fabric.StartProcess(csrunPath, "/devstore:start");
+                string csrunPath;
+
+                if (Fabric.IsInstallPathValid(path, out csrunPath))
+                {
+                    path = csrunPath;
+
+                    using (ProcessWrapper pw = new ProcessWrapper(path, "/devfabric:start"))
+                    {
+                        result = pw.Execute();
+                    }
+
+                    if (result.ExitCode <= 0)
+                    {
+                        using (ProcessWrapper pw = new ProcessWrapper(path, "/devstore:start"))
+                        {
+                            result = pw.Execute();
+                        }
+                    }
+                }
             }
 
-            return success;
+            return result ?? new ProcessResult(-1, path);
         }
 
-        public static bool Stop(string path = null)
+        public static ProcessResult Stop(string path = null)
         {
-            string csrunPath;
+            ProcessResult result = null;
 
             if (string.IsNullOrWhiteSpace(path))
             {
                 path = Fabric.DefaultInstallPath;
             }
 
-            return Fabric.IsInstallPathValid(path, out csrunPath)
-                && Fabric.StartProcess(csrunPath, "/devfabric:start")
-                && Fabric.StartProcess(csrunPath, "/devstore:start");
+            string csrunPath;
+
+            if (Fabric.IsInstallPathValid(path, out csrunPath))
+            {
+                path = csrunPath;
+
+                using (ProcessWrapper pw = new ProcessWrapper(path, "/devfabric:shutdown"))
+                {
+                    result = pw.Execute();
+                }
+
+                if (result.ExitCode <= 0)
+                {
+                    using (ProcessWrapper pw = new ProcessWrapper(path, "/devstore:shutdown"))
+                    {
+                        result = pw.Execute();
+                    }
+                }
+            }
+
+            return result ?? new ProcessResult(-1, path);
         }
 
         private static bool IsInstallPathValid(string path, out string csrunPath)
@@ -87,15 +135,6 @@
             path = !string.IsNullOrWhiteSpace(path) ? Path.GetFullPath(path) : Environment.CurrentDirectory;
             csrunPath = Path.Combine(path, "Emulator", "csrun.exe");
             return File.Exists(csrunPath);
-        }
-
-        private static bool StartProcess(string path, string arguments)
-        {
-            using (ProcessWrapper p = new ProcessWrapper(path, arguments))
-            {
-                ProcessResult result = p.Execute();
-                return result.ExitCode == 0;
-            }
         }
     }
 }
