@@ -10,6 +10,7 @@
     public static class Fabric
     {
         private static readonly object InitializeLock = new object();
+        private static readonly Version EmulatorThreshold = new Version("2.3.0.0");
 
         public static string DefaultInstallPath
         {
@@ -24,6 +25,19 @@
         public static bool IsStorageEmulatorStarted
         {
             get { return Process.GetProcesses().Where(p => p.ProcessName.ToUpperInvariant().Contains("DSSERVICELDB")).Any(); }
+        }
+
+        public static Version EmulatorVersion()
+        {
+            Version version = null;
+            string versionString = (string)Registry.GetValue(@"HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows Azure Emulator", "FullVersion", string.Empty);
+
+            if (!string.IsNullOrEmpty(versionString))
+            {
+                version = new Version(versionString);
+            }
+
+            return version;
         }
 
         public static bool IsInstallPathValid(string path)
@@ -41,17 +55,23 @@
 
             if (!Fabric.IsComputeEmulatorStarted && !Fabric.IsStorageEmulatorStarted)
             {
-                string csrunPath;
+                string csrunPath = null;
+                Version version = Fabric.EmulatorVersion();
 
                 if (Fabric.IsInstallPathValid(path, out csrunPath))
                 {
-                    path = Path.Combine(Path.GetDirectoryName(csrunPath), "devstore", "DSInit.exe");
+                    bool useLatest = version != null || version >= Fabric.EmulatorThreshold;
+                    string initDir = useLatest ? "devfabric" : "devstore";
+                    string args = useLatest ? "/silent" : "/silent /forceCreate";
+                    string executable = useLatest ? "DFInit.exe" : "DSInit.exe";
+
+                    path = Path.Combine(Path.GetDirectoryName(csrunPath), initDir, executable);
 
                     lock (Fabric.InitializeLock)
                     {
                         if (!Fabric.IsComputeEmulatorStarted && !Fabric.IsStorageEmulatorStarted)
                         {
-                            using (ProcessWrapper pw = new ProcessWrapper(path, "/silent /forceCreate"))
+                            using (ProcessWrapper pw = new ProcessWrapper(path, args))
                             {
                                 return pw.Execute(20000);
                             }
