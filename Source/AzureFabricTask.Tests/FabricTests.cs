@@ -1,6 +1,7 @@
 ﻿namespace AzureFabricTask.Tests
 {
     using System;
+    using System.IO;
     using System.Linq;
     using System.Threading.Tasks;
     using Xunit;
@@ -13,10 +14,23 @@
         }
 
         [Fact]
+        public void FabricInstallPathExists()
+        {
+            Assert.True(Directory.Exists(Fabric.DefaultInstallPath));
+        }
+
+        [Fact]
         public void FabricInitialize()
         {
             ProcessResult result = Fabric.Initialize();
             Assert.NotNull(result);
+        }
+
+        [Fact]
+        public void EmulatorVersion()
+        {
+            Version version = Fabric.EmulatorVersion();
+            Assert.NotNull(version);
         }
 
         [Fact]
